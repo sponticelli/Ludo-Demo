@@ -1,6 +1,8 @@
+using Ludo.Core.Analytics;
 using Ludo.Core.Pools.Runtime;
 using Ludo.UnityInject;
 using UnityEngine;
+using USpring;
 
 
 namespace Ludo.Demo.Installers
@@ -10,10 +12,13 @@ namespace Ludo.Demo.Installers
     {
         [Header("Core Managers")]
         [SerializeField] private PoolManager poolManagerPrefab;
+        [SerializeField] private SpringSettingsProvider springSettingsProviderPrefab;
         
         public override void InstallBindings(IContainer container)
         {
+            container.Bind<IAnalyticsService>().To<AnalyticsService>().AsSingleton();
             BindAndLog<IPoolManager, PoolManager>(container, poolManagerPrefab, "PoolManager");
+            BindAndLog<ISpringSettingsProvider, SpringSettingsProvider>(container, springSettingsProviderPrefab, "SpringSettingsProvider");
         }
         
         private void BindAndLog<TInterface, TImplementation>(IContainer container, TImplementation prefab, string managerName)

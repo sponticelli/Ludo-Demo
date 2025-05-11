@@ -1,6 +1,8 @@
 {
   "dependencies": {
+    "com.liteninja.analytics": "https://github.com/sponticelli/Ludo-Analytics.git",
     "com.liteninja.unityinject": "https://github.com/sponticelli/Ludo-UnityInject.git",
+    "com.liteninja.uspring": "https://github.com/sponticelli/Ludo-USpring.git",
     "com.ludo.eventbus": "git@github.com:sponticelli/Ludo-EventBus.git",
     "com.ludo.pools": "https://github.com/sponticelli/Ludo-Pools.git",
     "com.unity.collab-proxy": "2.8.2",

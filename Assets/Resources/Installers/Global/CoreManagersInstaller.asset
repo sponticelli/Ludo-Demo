@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   debugLog: 0
   poolManagerPrefab: {fileID: 481762430160169826, guid: b98ec61f6c5854fdf9e59e74447dc6de, type: 3}
+  springSettingsProviderPrefab: {fileID: 1361875852065384615, guid: c33c7151c9e734e06ad11f69c9815544, type: 3}

@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.liteninja.analytics": {
+      "version": "https://github.com/sponticelli/Ludo-Analytics.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "18311485aa887b6946fca2cffd39cdc765f00802"
+    },
     "com.liteninja.unityinject": {
       "version": "https://github.com/sponticelli/Ludo-UnityInject.git",
       "depth": 0,
@@ -8,6 +15,13 @@
         "com.unity.editorcoroutines": "1.0.0"
       },
       "hash": "92e9067db9d50c833aa1ea971636cbbdae9009ad"
+    },
+    "com.liteninja.uspring": {
+      "version": "https://github.com/sponticelli/Ludo-USpring.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "3cd46721d75b50bddfdc1c46ff294dca760ee23d"
     },
     "com.ludo.eventbus": {
       "version": "git@github.com:sponticelli/Ludo-EventBus.git",
