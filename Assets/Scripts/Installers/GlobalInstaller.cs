@@ -16,7 +16,6 @@ namespace Ludo.Demo.Installers
         
         public override void InstallBindings(IContainer container)
         {
-            container.Bind<IAnalyticsService>().To<AnalyticsService>().AsSingleton();
             BindAndLog<IPoolManager, PoolManager>(container, poolManagerPrefab, "PoolManager");
             BindAndLog<ISpringSettingsProvider, SpringSettingsProvider>(container, springSettingsProviderPrefab, "SpringSettingsProvider");
         }

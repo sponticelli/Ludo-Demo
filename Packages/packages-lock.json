@@ -5,7 +5,14 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "18311485aa887b6946fca2cffd39cdc765f00802"
+      "hash": "55ef70d676d7d67f9c8c844af0fa8a0216a3df70"
+    },
+    "com.liteninja.audioflux": {
+      "version": "https://github.com/sponticelli/Ludo-AudioFlux.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "25864f31b8400b4488c9b695667e86367f10ae77"
     },
     "com.liteninja.unityinject": {
       "version": "https://github.com/sponticelli/Ludo-UnityInject.git",
