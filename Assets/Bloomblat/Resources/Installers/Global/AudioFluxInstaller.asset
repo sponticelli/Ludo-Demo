@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: AudioFluxInstaller
   m_EditorClassIdentifier: 
   debugLog: 0
-  sfxServicePrefab: {fileID: 0}
-  musicServicePrefab: {fileID: 0}
+  sfxServicePrefab: {fileID: 842203853523203209, guid: 73218f968fb834900ace4d2733b4a28a, type: 3}
+  musicServicePrefab: {fileID: 8337220158651411515, guid: e8775e2de593d465bac43dcff3b075a5, type: 3}

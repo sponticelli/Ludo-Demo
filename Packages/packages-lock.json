@@ -5,7 +5,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "55ef70d676d7d67f9c8c844af0fa8a0216a3df70"
+      "hash": "0db335a75395855f0bd5831e2c61d776f79a275f"
     },
     "com.liteninja.audioflux": {
       "version": "https://github.com/sponticelli/Ludo-AudioFlux.git",
