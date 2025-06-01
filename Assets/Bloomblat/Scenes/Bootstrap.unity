@@ -317,8 +317,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 1439006344}
   moveSpeed: 2
-  usePixelMovement: 1
-  followPlayer: 1
+  usePixelMovement: 0
+  followPlayer: 0
   cameraFollowSpeed: 5
   cameraOffset: {x: 0, y: 0}
 --- !u!4 &856892288
@@ -443,10 +443,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.029411765
-    y: 0.23490489
-    width: 0.9411765
-    height: 0.5293631
+    x: 0.21584441
+    y: 0
+    width: 0.5683112
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -541,13 +541,10 @@ MonoBehaviour:
   gameWidth: 128
   gameHeight: 128
   pixelsPerUnit: 16
-  upscaleRenderTexture: 0
-  pixelSnapping: 1
-  cropFrameX: 0
-  cropFrameY: 0
-  stretchFill: 0
-  isMobile: 0
-  mobileControlsHeight: 200
+  gridSnapping: 0
+  cropFrame: 4
+  isMobile: 1
+  mobileControlsHeight: 400
   showDebugInfo: 1
   debugBorderColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!114 &1065011353
@@ -566,7 +563,7 @@ MonoBehaviour:
   m_AssetsPPU: 16
   m_RefResolutionX: 128
   m_RefResolutionY: 128
-  m_CropFrame: 3
+  m_CropFrame: 4
   m_GridSnapping: 1
   m_FilterMode: 0
   m_UpscaleRT: 0
