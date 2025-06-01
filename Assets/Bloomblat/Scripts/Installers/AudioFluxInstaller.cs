@@ -2,9 +2,9 @@ using Ludo.AudioFlux;
 using Ludo.UnityInject;
 using UnityEngine;
 
-namespace Ludo.Demo.Installers
+namespace Bloomblat.Installers
 {
-    [CreateAssetMenu(fileName = "AudioFluxInstaller", menuName = "Ludo Demo/Installers/AudioFluxInstaller")]
+    [CreateAssetMenu(fileName = "AudioFluxInstaller", menuName = "Bloomblat/Installers/AudioFluxInstaller")]
     public class AudioFluxInstaller : ScriptableObjectInstaller
     {
         [SerializeField] private SfxService sfxServicePrefab;

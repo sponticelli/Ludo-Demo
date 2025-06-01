@@ -2,7 +2,7 @@ using Ludo.Core.Analytics;
 using Ludo.UnityInject;
 using UnityEngine;
 
-namespace Ludo.Demo.Installers
+namespace Bloomblat.Installers
 {
     public class AnalyticsInitializer : MonoBehaviour
     {

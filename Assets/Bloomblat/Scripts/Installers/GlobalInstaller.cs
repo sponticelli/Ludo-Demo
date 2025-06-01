@@ -5,9 +5,9 @@ using UnityEngine;
 using USpring;
 
 
-namespace Ludo.Demo.Installers
+namespace Bloomblat.Installers
 {
-    [CreateAssetMenu(fileName = "CoreManagersInstaller", menuName = "Ludo Demo/Installers/CoreManagersInstaller")]
+    [CreateAssetMenu(fileName = "CoreManagersInstaller", menuName = "Bloomblat/Installers/CoreManagersInstaller")]
     public class CoreManagersInstaller : ScriptableObjectInstaller
     {
         [Header("Core Managers")]

@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using Bloomblat.Camera;
+using Bloomblat.Input;
+using Ludo.UnityInject;
 
 namespace Bloomblat.UI
 {
@@ -9,7 +11,7 @@ namespace Bloomblat.UI
     /// Manages virtual controls for mobile devices, positioning them in the reserved area
     /// below the game screen. Handles joystick and button inputs.
     /// </summary>
-    public class MobileControlsManager : MonoBehaviour
+    public class MobileControlsManager : MonoBehaviour, IControlsManager
     {
         [Header("Control References")]
         [SerializeField] private VirtualJoystick virtualJoystick;
@@ -25,45 +27,94 @@ namespace Bloomblat.UI
         [SerializeField] private Color joystickBackgroundColor = new Color(1f, 1f, 1f, 0.3f);
         [SerializeField] private Color joystickHandleColor = new Color(1f, 1f, 1f, 0.8f);
         [SerializeField] private Color buttonColor = new Color(1f, 1f, 1f, 0.5f);
-        
-        private PixelPerfectCameraController cameraController;
+
+        // Injected dependencies
+        [Inject] private PixelPerfectCameraController cameraController;
+
         private Canvas controlsCanvas;
         private RectTransform canvasRect;
-        
+
         // Input values
         private Vector2 joystickInput;
         private bool[] buttonStates;
-        
+        private bool[] buttonDownStates;
+        private bool[] buttonUpStates;
+        private bool isInitialized;
+        private bool isEnabled = true;
+
+        // IControlsManager implementation
         public Vector2 JoystickInput => joystickInput;
+        public float Horizontal => joystickInput.x;
+        public float Vertical => joystickInput.y;
+        public bool HasVisualControls => true;
+        public bool IsActive => isEnabled && gameObject.activeInHierarchy;
+
         public bool GetButton(int index) => index >= 0 && index < buttonStates.Length && buttonStates[index];
+        public bool GetButtonDown(int index) => index >= 0 && index < buttonDownStates.Length && buttonDownStates[index];
+        public bool GetButtonUp(int index) => index >= 0 && index < buttonUpStates.Length && buttonUpStates[index];
         
         private void Awake()
         {
-            cameraController = FindFirstObjectByType<PixelPerfectCameraController>();
             controlsCanvas = GetComponent<Canvas>();
             canvasRect = GetComponent<RectTransform>();
-
-            if (actionButtons != null)
-            {
-                buttonStates = new bool[actionButtons.Length];
-            }
-            else
-            {
-                buttonStates = new bool[0];
-            }
+            InitializeButtonArrays();
         }
-        
+
         private void Start()
         {
+            // Initialize will be called by the dependency injection system
+            if (!isInitialized)
+            {
+                Initialize();
+            }
+        }
+
+        private void Update()
+        {
+            if (isInitialized && isEnabled)
+            {
+                UpdateInput();
+            }
+        }
+
+        // IControlsManager interface implementation
+        public void Initialize()
+        {
+            if (isInitialized) return;
+
             SetupControlsCanvas();
             CreateVirtualControls();
             UpdateControlsVisibility();
+            isInitialized = true;
         }
-        
-        private void Update()
+
+        public void UpdateInput()
         {
+            // Clear previous frame's button events
+            ClearButtonEvents();
+
             UpdateControlsVisibility();
             UpdateInputValues();
+        }
+
+        public void SetEnabled(bool enabled)
+        {
+            isEnabled = enabled;
+            if (gameObject != null)
+            {
+                gameObject.SetActive(enabled && ShouldShowControls());
+            }
+        }
+
+        public void Cleanup()
+        {
+            if (virtualJoystick != null)
+            {
+                virtualJoystick.ResetJoystick();
+            }
+
+            joystickInput = Vector2.zero;
+            ClearAllButtonStates();
         }
         
         private void SetupControlsCanvas()
@@ -211,8 +262,40 @@ namespace Bloomblat.UI
         
         private void UpdateControlsVisibility()
         {
-            bool shouldShow = cameraController != null && cameraController.IsMobile;
-            gameObject.SetActive(shouldShow);
+            bool shouldShow = ShouldShowControls();
+            gameObject.SetActive(shouldShow && isEnabled);
+        }
+
+        private bool ShouldShowControls()
+        {
+            return cameraController != null && cameraController.IsMobile;
+        }
+
+        private void InitializeButtonArrays()
+        {
+            int buttonCount = actionButtons?.Length ?? 2; // Default to 2 buttons
+            buttonStates = new bool[buttonCount];
+            buttonDownStates = new bool[buttonCount];
+            buttonUpStates = new bool[buttonCount];
+        }
+
+        private void ClearButtonEvents()
+        {
+            for (int i = 0; i < buttonDownStates.Length; i++)
+            {
+                buttonDownStates[i] = false;
+                buttonUpStates[i] = false;
+            }
+        }
+
+        private void ClearAllButtonStates()
+        {
+            for (int i = 0; i < buttonStates.Length; i++)
+            {
+                buttonStates[i] = false;
+                buttonDownStates[i] = false;
+                buttonUpStates[i] = false;
+            }
         }
         
         private void UpdateInputValues()
@@ -227,14 +310,22 @@ namespace Bloomblat.UI
         {
             if (buttonIndex >= 0 && buttonIndex < buttonStates.Length)
             {
+                if (!buttonStates[buttonIndex])
+                {
+                    buttonDownStates[buttonIndex] = true;
+                }
                 buttonStates[buttonIndex] = true;
             }
         }
-        
+
         private void OnButtonUp(int buttonIndex)
         {
             if (buttonIndex >= 0 && buttonIndex < buttonStates.Length)
             {
+                if (buttonStates[buttonIndex])
+                {
+                    buttonUpStates[buttonIndex] = true;
+                }
                 buttonStates[buttonIndex] = false;
             }
         }

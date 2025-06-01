@@ -2,9 +2,9 @@ using Ludo.Core.Analytics;
 using Ludo.UnityInject;
 using UnityEngine;
 
-namespace Ludo.Demo.Installers
+namespace Bloomblat.Installers
 {
-    [CreateAssetMenu(fileName = "AnalyticsInstaller", menuName = "Ludo Demo/Installers/AnalyticsInstaller")]
+    [CreateAssetMenu(fileName = "AnalyticsInstaller", menuName = "Bloomblat/Installers/AnalyticsInstaller")]
     public class AnalyticsInstaller : ScriptableObjectInstaller
     {
         [SerializeField] private DebugProviderConfig debugProviderConfig;

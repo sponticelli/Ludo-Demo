@@ -1,12 +1,14 @@
 using UnityEngine;
 using Bloomblat.Camera;
-using Bloomblat.UI;
+using Bloomblat.Core;
+using Bloomblat.Input;
+using Ludo.UnityInject;
 
 namespace Bloomblat.Examples
 {
     /// <summary>
     /// Example script demonstrating how to use the pixel-perfect camera system
-    /// and mobile controls in a simple game scenario.
+    /// and controls manager with dependency injection in a simple game scenario.
     /// </summary>
     public class PixelGameExample : MonoBehaviour
     {
@@ -14,92 +16,89 @@ namespace Bloomblat.Examples
         [SerializeField] private Transform player;
         [SerializeField] private float moveSpeed = 2f;
         [SerializeField] private bool usePixelMovement = true;
-        
+
         [Header("Camera Settings")]
         [SerializeField] private bool followPlayer = true;
         [SerializeField] private float cameraFollowSpeed = 5f;
         [SerializeField] private Vector2 cameraOffset = Vector2.zero;
+        [SerializeField] private PixelPerfectCameraController cameraController;
         
-        private PixelPerfectCameraController cameraController;
-        private MobileControlsManager mobileControls;
+        // Injected dependencies
+        [Inject] private IControlsManager controlsManager;
+        [Inject] private IPixelDataProvider pixelDataProvider;
+
         private Vector2 inputVector;
         private Vector3 targetCameraPosition;
         
         private void Start()
         {
-            // Find the camera controller
-            cameraController = FindFirstObjectByType<PixelPerfectCameraController>();
+            // Dependencies should be injected by now
             if (cameraController == null)
             {
-                Debug.LogError("PixelPerfectCameraController not found! Please set up the camera system first.");
+                Debug.LogError("PixelPerfectCameraController not injected! Please ensure dependency injection is set up correctly.");
                 return;
             }
-            
-            // Find mobile controls
-            mobileControls = FindFirstObjectByType<MobileControlsManager>();
-            
+
+            if (controlsManager == null)
+            {
+                Debug.LogError("IControlsManager not injected! Please ensure dependency injection is set up correctly.");
+                return;
+            }
+
+            // Initialize the controls manager
+            controlsManager.Initialize();
+
             // Create a simple player if none exists
             if (player == null)
             {
                 CreateSimplePlayer();
             }
-            
+
             // Initialize camera position
             if (followPlayer && player != null)
             {
                 targetCameraPosition = player.position + (Vector3)cameraOffset;
                 cameraController.transform.position = targetCameraPosition;
             }
-            
-            Debug.Log("Pixel Game Example initialized!");
+
+            Debug.Log("Pixel Game Example initialized with dependency injection!");
             LogSystemInfo();
         }
         
         private void Update()
         {
+            // Update controls manager input
+            if (controlsManager != null && controlsManager.IsActive)
+            {
+                controlsManager.UpdateInput();
+            }
+
             HandleInput();
             MovePlayer();
             UpdateCamera();
             HandleDebugInput();
         }
-        
+
         private void HandleInput()
         {
-            // Get input from mobile controls or keyboard
-            if (cameraController.IsMobile && mobileControls != null)
+            if (controlsManager == null || !controlsManager.IsActive)
             {
-                // Use mobile virtual joystick
-                inputVector = mobileControls.JoystickInput;
-                
-                // Handle action buttons
-                if (mobileControls.GetButton(0))
-                {
-                    OnActionButton1();
-                }
-                
-                if (mobileControls.GetButton(1))
-                {
-                    OnActionButton2();
-                }
+                inputVector = Vector2.zero;
+                return;
             }
-            else
+
+            // Get input from the controls manager (works for both mobile and desktop)
+            inputVector = controlsManager.JoystickInput;
+
+            // Handle action buttons
+            if (controlsManager.GetButtonDown(0))
             {
-                // Use keyboard input for PC/WebGL
-                inputVector = new Vector2(
-                    Input.GetAxisRaw("Horizontal"),
-                    Input.GetAxisRaw("Vertical")
-                );
-                
-                // Handle keyboard actions
-                if (Input.GetKeyDown(KeyCode.Space))
-                {
-                    OnActionButton1();
-                }
-                
-                if (Input.GetKeyDown(KeyCode.X))
-                {
-                    OnActionButton2();
-                }
+                OnActionButton1();
+            }
+
+            if (controlsManager.GetButtonDown(1))
+            {
+                OnActionButton2();
             }
         }
         
@@ -157,9 +156,14 @@ namespace Bloomblat.Examples
         
         private Vector3 SnapToPixel(Vector3 position)
         {
-            // Snap position to pixel boundaries based on pixels per unit
-            float pixelsPerUnit = 16f; // Should match your camera settings
-            
+            // Use the injected pixel data provider for pixel snapping
+            if (pixelDataProvider != null)
+            {
+                return pixelDataProvider.SnapToPixel(position);
+            }
+
+            // Fallback to hardcoded value if provider is not available
+            float pixelsPerUnit = 16f;
             return new Vector3(
                 Mathf.Round(position.x * pixelsPerUnit) / pixelsPerUnit,
                 Mathf.Round(position.y * pixelsPerUnit) / pixelsPerUnit,
@@ -229,17 +233,17 @@ namespace Bloomblat.Examples
             // Debug controls (PC only)
             if (!cameraController.IsMobile)
             {
-                if (Input.GetKeyDown(KeyCode.F1))
+                if (UnityEngine.Input.GetKeyDown(KeyCode.F1))
                 {
                     LogSystemInfo();
                 }
                 
-                if (Input.GetKeyDown(KeyCode.F2))
+                if (UnityEngine.Input.GetKeyDown(KeyCode.F2))
                 {
                     TogglePixelMovement();
                 }
                 
-                if (Input.GetKeyDown(KeyCode.F3))
+                if (UnityEngine.Input.GetKeyDown(KeyCode.F3))
                 {
                     ToggleCameraFollow();
                 }
@@ -266,8 +270,10 @@ namespace Bloomblat.Examples
             Debug.Log($"Game Area Size: {cameraController.GameAreaSize}");
             Debug.Log($"Game Area Position: {cameraController.GameAreaPosition}");
             Debug.Log($"Is Mobile: {cameraController.IsMobile}");
-            Debug.Log($"Mobile Controls Available: {mobileControls != null}");
-            
+            Debug.Log($"Controls Manager: {controlsManager?.GetType().Name ?? "None"}");
+            Debug.Log($"Controls Manager Active: {controlsManager?.IsActive ?? false}");
+            Debug.Log($"Has Visual Controls: {controlsManager?.HasVisualControls ?? false}");
+
             Bounds worldBounds = cameraController.GetWorldBounds();
             Debug.Log($"World Bounds: {worldBounds.size} at {worldBounds.center}");
         }

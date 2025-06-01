@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Bloomblat.Camera;
+using Bloomblat.Core;
+using Ludo.UnityInject;
 
 namespace Bloomblat.UI
 {
@@ -14,16 +16,16 @@ namespace Bloomblat.UI
     {
         [Header("Scaling Settings")]
         [SerializeField] private bool autoScale = true;
-        [SerializeField] private float referencePixelsPerUnit = 16f;
         [SerializeField] private float fallbackScreenDPI = 96f;
         [SerializeField] private float defaultSpriteDPI = 96f;
-        
+
         [Header("UI Scaling")]
         [SerializeField] private ScalingMode scalingMode = ScalingMode.ConstantPixelSize;
         [SerializeField] private float scaleFactor = 1f;
-        [SerializeField] private Vector2 referenceResolution = new Vector2(128, 128);
         [SerializeField] private CanvasScaler.ScreenMatchMode screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         [SerializeField] private float matchWidthOrHeight = 0.5f;
+
+        [Inject] private IPixelDataProvider pixelDataProvider;
         
         public enum ScalingMode
         {
@@ -72,21 +74,28 @@ namespace Bloomblat.UI
                 return;
             }
 
+            // Ensure pixelDataProvider is injected
+            if (pixelDataProvider == null)
+            {
+                Debug.LogWarning($"PixelDataProvider is null on {gameObject.name}. Cannot setup canvas scaler properly.");
+                return;
+            }
+
             // Configure the canvas scaler based on our scaling mode
             switch (scalingMode)
             {
                 case ScalingMode.ConstantPixelSize:
                     canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
                     canvasScaler.scaleFactor = scaleFactor;
-                    canvasScaler.referencePixelsPerUnit = referencePixelsPerUnit;
+                    canvasScaler.referencePixelsPerUnit = pixelDataProvider.PixelsPerUnitFloat;
                     break;
 
                 case ScalingMode.ScaleWithScreenSize:
                     canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                    canvasScaler.referenceResolution = referenceResolution;
+                    canvasScaler.referenceResolution = pixelDataProvider.GameResolutionFloat;
                     canvasScaler.screenMatchMode = screenMatchMode;
                     canvasScaler.matchWidthOrHeight = matchWidthOrHeight;
-                    canvasScaler.referencePixelsPerUnit = referencePixelsPerUnit;
+                    canvasScaler.referencePixelsPerUnit = pixelDataProvider.PixelsPerUnitFloat;
                     break;
 
                 case ScalingMode.ConstantPhysicalSize:
@@ -94,7 +103,7 @@ namespace Bloomblat.UI
                     canvasScaler.physicalUnit = CanvasScaler.Unit.Points;
                     canvasScaler.fallbackScreenDPI = fallbackScreenDPI;
                     canvasScaler.defaultSpriteDPI = defaultSpriteDPI;
-                    canvasScaler.referencePixelsPerUnit = referencePixelsPerUnit;
+                    canvasScaler.referencePixelsPerUnit = pixelDataProvider.PixelsPerUnitFloat;
                     break;
             }
         }
@@ -122,10 +131,11 @@ namespace Bloomblat.UI
         
         private void UpdateConstantPixelSize()
         {
-            if (cameraController == null || canvasScaler == null) return;
+            if (cameraController == null || canvasScaler == null || pixelDataProvider == null) return;
 
             // Calculate scale factor based on the game area size vs reference resolution
             Vector2 gameAreaSize = cameraController.GameAreaSize;
+            Vector2 referenceResolution = pixelDataProvider.GameResolutionFloat;
             float scaleX = gameAreaSize.x / referenceResolution.x;
             float scaleY = gameAreaSize.y / referenceResolution.y;
 
@@ -140,11 +150,10 @@ namespace Bloomblat.UI
         
         private void UpdateScaleWithScreenSize()
         {
-            if (cameraController == null || canvasScaler == null) return;
+            if (cameraController == null || canvasScaler == null || pixelDataProvider == null) return;
 
-            // Update reference resolution to match the game resolution
-            referenceResolution = new Vector2(cameraController.GameWidth, cameraController.GameHeight);
-            canvasScaler.referenceResolution = referenceResolution;
+            // Update reference resolution to match the game resolution from pixel data provider
+            canvasScaler.referenceResolution = pixelDataProvider.GameResolutionFloat;
         }
         
         /// <summary>
@@ -171,14 +180,12 @@ namespace Bloomblat.UI
         
         /// <summary>
         /// Sets the reference resolution for scale with screen size mode
+        /// Note: This method is deprecated as reference resolution is now provided by PixelDataProvider
         /// </summary>
+        [System.Obsolete("Reference resolution is now managed by PixelDataProvider. This method has no effect.")]
         public void SetReferenceResolution(Vector2 resolution)
         {
-            referenceResolution = resolution;
-            if (scalingMode == ScalingMode.ScaleWithScreenSize && canvasScaler != null)
-            {
-                canvasScaler.referenceResolution = referenceResolution;
-            }
+            Debug.LogWarning("SetReferenceResolution is deprecated. Reference resolution is now managed by PixelDataProvider.");
         }
         
         /// <summary>
@@ -186,7 +193,7 @@ namespace Bloomblat.UI
         /// </summary>
         public float GetEffectiveScaleFactor()
         {
-            if (canvasScaler == null) return 1f;
+            if (canvasScaler == null || pixelDataProvider == null) return 1f;
 
             switch (scalingMode)
             {
@@ -196,6 +203,7 @@ namespace Bloomblat.UI
                 case ScalingMode.ScaleWithScreenSize:
                     // Calculate effective scale based on screen size and reference resolution
                     Vector2 screenSize = new Vector2(Screen.width, Screen.height);
+                    Vector2 referenceResolution = pixelDataProvider.GameResolutionFloat;
                     Vector2 scaleRatio = screenSize / referenceResolution;
 
                     return screenMatchMode == CanvasScaler.ScreenMatchMode.MatchWidthOrHeight
@@ -215,15 +223,17 @@ namespace Bloomblat.UI
         /// </summary>
         public float PixelsToUIUnits(float pixels)
         {
-            return pixels / referencePixelsPerUnit / GetEffectiveScaleFactor();
+            if (pixelDataProvider == null) return pixels;
+            return pixels / pixelDataProvider.PixelsPerUnitFloat / GetEffectiveScaleFactor();
         }
-        
+
         /// <summary>
         /// Converts UI units to pixel size based on the current scaling
         /// </summary>
         public float UIUnitsToPixels(float uiUnits)
         {
-            return uiUnits * referencePixelsPerUnit * GetEffectiveScaleFactor();
+            if (pixelDataProvider == null) return uiUnits;
+            return uiUnits * pixelDataProvider.PixelsPerUnitFloat * GetEffectiveScaleFactor();
         }
         
         #if UNITY_EDITOR

@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using Bloomblat.Core;
+using Ludo.UnityInject;
 
 namespace Bloomblat.Camera
 {
@@ -11,12 +13,7 @@ namespace Bloomblat.Camera
     [RequireComponent(typeof(PixelPerfectCamera))]
     public class PixelPerfectCameraController : MonoBehaviour
     {
-        [Header("Game Resolution")]
-        [SerializeField] private int gameWidth = 128;
-        [SerializeField] private int gameHeight = 128;
-        
         [Header("Pixel Perfect Settings")]
-        [SerializeField] private int pixelsPerUnit = 16;
         [SerializeField] private PixelPerfectCamera.GridSnapping gridSnapping = PixelPerfectCamera.GridSnapping.None;
         [SerializeField] private PixelPerfectCamera.CropFrame cropFrame = PixelPerfectCamera.CropFrame.None;
         
@@ -27,7 +24,9 @@ namespace Bloomblat.Camera
         [Header("Debug")]
         [SerializeField] private bool showDebugInfo = true;
         [SerializeField] private Color debugBorderColor = Color.red;
-        
+
+        [Inject] private IPixelDataProvider pixelDataProvider;
+
         private UnityEngine.Camera mainCamera;
         private PixelPerfectCamera pixelPerfectCamera;
         private AspectRatioHandler aspectRatioHandler;
@@ -37,8 +36,8 @@ namespace Bloomblat.Camera
         private Vector2 gameAreaSize;
         private Vector2 gameAreaPosition;
         
-        public int GameWidth => gameWidth;
-        public int GameHeight => gameHeight;
+        public int GameWidth => pixelDataProvider?.GameWidth ?? 128;
+        public int GameHeight => pixelDataProvider?.GameHeight ?? 128;
         public Vector2 GameAreaSize => gameAreaSize;
         public Vector2 GameAreaPosition => gameAreaPosition;
         public bool IsMobile => isMobile;
@@ -68,7 +67,7 @@ namespace Bloomblat.Camera
                 aspectRatioHandler = gameObject.AddComponent<AspectRatioHandler>();
             }
 
-            targetAspectRatio = (float)gameWidth / gameHeight;
+            targetAspectRatio = (float)GameWidth / GameHeight;
 
             // Detect mobile platform
             #if UNITY_ANDROID || UNITY_IOS
@@ -117,10 +116,16 @@ namespace Bloomblat.Camera
                 return;
             }
 
+            if (pixelDataProvider == null)
+            {
+                Debug.LogWarning($"PixelDataProvider is null on {gameObject.name}. Cannot setup pixel perfect camera properly.");
+                return;
+            }
+
             // Configure the Pixel Perfect Camera component
-            pixelPerfectCamera.assetsPPU = pixelsPerUnit;
-            pixelPerfectCamera.refResolutionX = gameWidth;
-            pixelPerfectCamera.refResolutionY = gameHeight;
+            pixelPerfectCamera.assetsPPU = pixelDataProvider.PixelsPerUnit;
+            pixelPerfectCamera.refResolutionX = pixelDataProvider.GameWidth;
+            pixelPerfectCamera.refResolutionY = pixelDataProvider.GameHeight;
             pixelPerfectCamera.gridSnapping = gridSnapping;
             pixelPerfectCamera.cropFrame = cropFrame;
 
@@ -159,9 +164,9 @@ namespace Bloomblat.Camera
             CalculateGameArea();
 
             // Update orthographic size based on the pixel perfect camera
-            if (mainCamera != null)
+            if (mainCamera != null && pixelDataProvider != null)
             {
-                mainCamera.orthographicSize = gameHeight / 2f / pixelsPerUnit;
+                mainCamera.orthographicSize = pixelDataProvider.GameHeight / 2f / pixelDataProvider.PixelsPerUnitFloat;
             }
         }
         

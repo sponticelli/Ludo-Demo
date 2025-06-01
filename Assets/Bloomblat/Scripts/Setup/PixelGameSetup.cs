@@ -17,12 +17,8 @@ namespace Bloomblat.Setup
         [SerializeField] private bool createGameUI = true;
         
         [Header("Camera Settings")]
-        [SerializeField] private int gameWidth = 128;
-        [SerializeField] private int gameHeight = 128;
         [SerializeField] private int pixelsPerUnit = 16;
         
-        [Header("Mobile Settings")]
-        [SerializeField] private float mobileControlsHeight = 200f;
         
         private void Start()
         {
@@ -93,28 +89,9 @@ namespace Bloomblat.Setup
         
         private void SetupMobileControls()
         {
-            // Find or create mobile controls canvas
-            GameObject controlsObj = GameObject.Find("Mobile Controls");
-            if (controlsObj == null)
-            {
-                controlsObj = new GameObject("Mobile Controls");
-            }
-            
-            // Add Canvas component
-            Canvas canvas = controlsObj.GetComponent<Canvas>();
-            if (canvas == null)
-            {
-                canvas = controlsObj.AddComponent<Canvas>();
-            }
-            
-            // Add MobileControlsManager
-            MobileControlsManager controlsManager = controlsObj.GetComponent<MobileControlsManager>();
-            if (controlsManager == null)
-            {
-                controlsManager = controlsObj.AddComponent<MobileControlsManager>();
-            }
-            
-            Debug.Log("Mobile controls setup complete.");
+            // Note: Mobile controls are now handled by dependency injection through ControlsManagerInstaller
+            // The controls manager will be automatically instantiated based on platform and configuration
+            Debug.Log("Mobile controls will be handled by dependency injection system.");
         }
         
         private void SetupGameUI()
